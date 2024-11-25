@@ -458,3 +458,7 @@ const events = await Event.find({
   "location.city": "Santo Domingo"
 });
 ```
+
+Redis:
+
+docker run -d -p 6379:6379 --name redis redis
