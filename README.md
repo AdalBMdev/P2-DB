@@ -1,5 +1,27 @@
 # **README: API de Recomendación de Eventos**
 
+# **IMPLEMENTACIÓN DE REDIS**
+
+Esta API utiliza **Redis** para mejorar el rendimiento al almacenar en caché las respuestas de los endpoints que consultan eventos basados en las preferencias del usuario. Al utilizar Redis, las respuestas a solicitudes repetidas son más rápidas y se reduce la carga en la base de datos.
+
+## **Endpoint de Eventos Populares**
+
+- **URL del Endpoint:** `/api/events/popular/:userId`
+- **Método HTTP:** `GET`
+- **Descripción:** Devuelve una lista de eventos populares que coinciden con las preferencias del usuario. Un evento se considera popular si tiene **más de 5 asistentes**.
+- **Qué necesita enviarle:**
+  - Un `userId` válido en la URL para identificar al usuario y obtener sus preferencias.
+- **Qué devuelve:**
+  - Una lista de eventos populares filtrados según las preferencias del usuario.
+- **Funcionamiento con Redis:**
+  - Los resultados se almacenan en Redis durante **1 hora**. Si se realiza otra solicitud dentro de ese período, la respuesta se obtiene directamente de la caché, acelerando el tiempo de respuesta.
+
+### **Ejemplo de Solicitud:**
+
+```bash
+GET http://localhost:3000/api/events/popular/67228d1787fbdef3aa24cd19
+```
+
 ## **Introducción**
 
 Esta API está diseñada para recomendar eventos a los usuarios según sus preferencias. Utiliza Node.js, Express y Mongoose para conectarse a una base de datos MongoDB. Los usuarios pueden obtener recomendaciones de eventos basados en categorías, ubicación, costo y restricciones de edad.
