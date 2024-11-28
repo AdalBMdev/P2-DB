@@ -26,7 +26,7 @@ redisClient.connect()
   .then(() => console.log('Conectado a Redis'))
   .catch(err => console.error('Error al conectar a Redis:', err));
 
-// Función para validar ObjectId (opcional)
+// Función para validar ObjectId 
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
@@ -232,6 +232,39 @@ app.get('/api/events/city/:city/:userId', async (req, res) => {
     });
 
     // Almacenar en la caché
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(events));
+
+    res.json(events);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// 7. Obtener eventos populares (con caché)
+app.get('/api/events/popular/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId.trim();
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).send('ID de usuario no válido');
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send('Usuario no encontrado');
+
+    const cacheKey = `eventsPopular:${userId}`;
+    const cachedEvents = await redisClient.get(cacheKey);
+
+    if (cachedEvents) {
+      console.log('Obteniendo eventos populares desde la caché');
+      return res.json(JSON.parse(cachedEvents));
+    }
+
+    const events = await Event.find({
+      category: { $in: user.preferences },
+      $expr: { $gt: [{ $size: "$attendees" }, 5] }
+    });
+
     await redisClient.setEx(cacheKey, 3600, JSON.stringify(events));
 
     res.json(events);
